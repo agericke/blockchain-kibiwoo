@@ -1,12 +1,12 @@
 pragma solidity ^0.5.2;
 
 import "truffle/Assert.sol";
-/// When running tests, Truffle will dpeloy a fresh instance of the contract being teted to the Blockchain.
+/// When running tests, Truffle will deploy a fresh instance of the contract being tested to the Blockchain.
 /// 	This Smart Contract gets the adress of the deployed contract.
 import "truffle/DeployedAddresses.sol";
 import "./../contracts/kibiwooregisterproducts.sol";
 
-/// @title A tester contarct for testing Kibiwoo's register products solution.
+/// @title A tester contract for testing Kibiwoo's register products solution.
 /// @author Álvaro Gericke
 
 contract TestKibiwooRegisterProducts {
@@ -19,7 +19,7 @@ contract TestKibiwooRegisterProducts {
 
 	address expectedOwner = address(this);
 
-	/// @notice Test the registering of a product.
+	/// @notice Test a product's registration.
 	/// @param name Name of the product to be registered.
 	/// @param category Number that represents the category to be registered.
 	/// @return Id of the created product.
@@ -31,7 +31,7 @@ contract TestKibiwooRegisterProducts {
 		return id;
 	}
 
-	/// @notice Test if registering of products works correctly.
+	/// @notice Test if product's registration works correctly.
 	function testUserCanRegisterProducts () public {
 		// Register product 1
 		string memory name = "TablaSurf";
@@ -43,7 +43,7 @@ contract TestKibiwooRegisterProducts {
 		name = "SkiesFromigal";
 		category = 2;
 		id = registerProduct(name, category);
-		Assert.equal(id, expectedProductId, "Registration of product 2 failed. Ids do not match.");
+		Assert.equal(id, expectedProductId-1, "Registration of product 2 failed. Ids do not match.");
 
 		// TODO: Test invalid arguments, specially categories
 	}
@@ -89,5 +89,4 @@ contract TestKibiwooRegisterProducts {
 
 	// 	//Assert.equal(owners[expectedProductId], expectedOwner, "Owner of th expected product should be this contract");
 	// }
-	
 }
