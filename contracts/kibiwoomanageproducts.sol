@@ -31,7 +31,8 @@ contract KibiwooManageProducts is KibiwooRegisterProducts {
 		uint randSku = _generateRandomSku(_name);
 		uint complementId = _registerProduct(_name, randSku, true, products[_productId].category);
 		complementToProduct[complementId] = _productId;
-		productComplementCount[_productId].add(1);
+		// TODO: Use SafeMath
+		productComplementCount[_productId] += 1;
 		emit NewComplement(complementId, _productId, _name, _sku);
 	}
 }

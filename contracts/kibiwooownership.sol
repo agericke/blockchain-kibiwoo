@@ -2,11 +2,11 @@ pragma solidity ^0.5.0;
 
 import "./kibiwoohelperproducts.sol";
 // Change this import for importing openzeppelin erc721's implementation.
-//import "./ERC721.sol";
+import "./ERC721.sol";
 
 /// @title A contract that implements ERC721 implementation adapted to Kibiwoo's Products as the NFTs
 /// @author Álvaro Gericke
-contract KibiwooOwnership is KibiwooHelperProducts{
+contract KibiwooOwnership is KibiwooHelperProducts, ERC721{
 
     /// @dev This emits when ownership of any NFT changes by any mechanism.
     ///  This event emits when NFTs are created (`from` == 0) and destroyed
@@ -48,8 +48,9 @@ contract KibiwooOwnership is KibiwooHelperProducts{
     }
 
     function _transfer(address _from, address _to, uint256 _tokenId) private {
-        storeProductCount[_to].add(1);
-        storeProductCount[_from].sub(1);
+        // TODO: Use Safemath libarary form openzeppelin
+        storeProductCount[_to] += 1;
+        storeProductCount[_from] -= 1;
         productToStore[_tokenId] = _to;
         emit Transfer(_from,_to,_tokenId);
     }
