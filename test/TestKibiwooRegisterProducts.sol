@@ -69,7 +69,6 @@ contract TestKibiwooRegisterProducts {
 
 	/// @notice Test the retireval of storeToProductCount array
 	function testStoreProductCount () public {
-		log0(bytes32("Testing testStoreProductCount"));
 		uint expectedNumProducts = 2;
 		// Test that this contract address has 2 products created.
 		uint numProducts = kibiwooregisterproducts.storeProductCount(expectedOwner);
