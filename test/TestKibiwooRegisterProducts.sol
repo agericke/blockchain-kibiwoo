@@ -1,7 +1,7 @@
 pragma solidity ^0.5.2;
 
 import "truffle/Assert.sol";
-/// When running tests, Truffle will dpeloy a fresh instance of the contract being teted to the Blockchain.
+/// When running tests, Truffle will dpeloy a fresh instance of the contract being tested to the Blockchain.
 /// 	This Smart Contract gets the adress of the deployed contract.
 import "truffle/DeployedAddresses.sol";
 import "./../contracts/kibiwooregisterproducts.sol";
@@ -16,15 +16,13 @@ contract TestKibiwooRegisterProducts {
 
 	/// Number of times we have registered a product that allows us to keep track of the product Id.
 	uint expectedProductId = 0;
-
 	address expectedOwner = address(this);
-
+	
 	/// @notice Test the registering of a product.
 	/// @param name Name of the product to be registered.
 	/// @param category Number that represents the category to be registered.
 	/// @return Id of the created product.
 	function registerProduct (string memory name, uint category) public returns(uint) {
-
 		uint id = kibiwooregisterproducts.createNewProduct(name, category);
 		// Add 1 to the expectedProductId. Recall to substract 1 when asserting.
 		expectedProductId++;
@@ -38,13 +36,21 @@ contract TestKibiwooRegisterProducts {
 		uint category = 0;
 		uint id = registerProduct(name, category);
 		Assert.equal(id, expectedProductId-1, "Registration of product 1 failed. Ids do not match.");
+		// test values of product.
+		(string memory expectedName, , bool expectedIsComplement, uint expectedCategory) = kibiwooregisterproducts.products(id);
+		Assert.equal(name, expectedName, "Name of product 1 not registered correctly.");
+		Assert.equal(category, expectedCategory, "Category of product 1 not registered correctly.");
+		Assert.equal(false, expectedIsComplement, "isComplement field of product 1 not registered correctly.");
 
 		// Register product 2
 		name = "SkiesFromigal";
 		category = 2;
 		id = registerProduct(name, category);
-		Assert.equal(id, expectedProductId, "Registration of product 2 failed. Ids do not match.");
-
+		Assert.equal(id, expectedProductId-1, "Registration of product 2 failed. Ids do not match.");
+		(expectedName, , expectedIsComplement, expectedCategory) = kibiwooregisterproducts.products(id);
+		Assert.equal(name, expectedName, "Name of product 2 not registered correctly.");
+		Assert.equal(category, expectedCategory, "Category of product 2 not registered correctly.");
+		Assert.equal(false, expectedIsComplement, "isComplement field of product 2 not registered correctly.");
 		// TODO: Test invalid arguments, specially categories
 	}
 	
