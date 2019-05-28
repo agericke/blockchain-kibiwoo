@@ -26,13 +26,13 @@ contract KibiwooManageProducts is KibiwooRegisterProducts {
     /// @dev If no name is assigned, it will be assigned an empty string.
     /// @param _productId The unique identifier of the product to which a complement will be added.
     /// @param _name String identifying the  name of the complement.
-    /// @param _sku The 36 digits identifier of the complement to be created.
-	function addComplement(uint _productId, string memory _name, uint _sku) public  onlyOwnerOf(_productId) {
+	function addComplement(uint _productId, string memory _name) public onlyOwnerOf(_productId) returns (uint) {
 		uint randSku = _generateRandomSku(_name);
 		uint complementId = _registerProduct(_name, randSku, true, products[_productId].category);
 		complementToProduct[complementId] = _productId;
 		// TODO: Use SafeMath
 		productComplementCount[_productId] += 1;
-		emit NewComplement(complementId, _productId, _name, _sku);
+		emit NewComplement(complementId, _productId, _name, randSku);
+		return complementId;
 	}
 }
