@@ -2,7 +2,7 @@ pragma solidity ^0.5.2;
 
 import "truffle/Assert.sol";
 import "truffle/DeployedAddresses.sol";
-import "./../contracts/kibiwoohelperproducts.sol";
+import "./../contracts/KibiwooHelperProducts.sol";
 
 /// @title A tester contract for testing Kibiwoo's helper products solidity contract.
 /// @author Álvaro Gericke

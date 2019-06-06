@@ -1,6 +1,6 @@
 pragma solidity ^0.5.0;
 
-import "./kibiwoohelperproducts.sol";
+import "./KibiwooHelperProducts.sol";
 // Change this import for importing openzeppelin erc721's implementation.
 import "./ERC721.sol";
 

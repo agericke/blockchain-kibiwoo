@@ -1,6 +1,6 @@
 pragma solidity ^0.5.0;
 
-import "./kibiwoomanageproducts.sol";
+import "./KibiwooManageProducts.sol";
 
 /// @title A contract that implements some functions for helping Kibiwoo's managing of products
 /// @author Álvaro Gericke
