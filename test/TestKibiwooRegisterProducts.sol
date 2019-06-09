@@ -4,7 +4,7 @@ import "truffle/Assert.sol";
 /// When running tests, Truffle will dpeloy a fresh instance of the contract being tested to the Blockchain.
 /// 	This Smart Contract gets the adress of the deployed contract.
 import "truffle/DeployedAddresses.sol";
-import "./../contracts/kibiwooregisterproducts.sol";
+import "./../contracts/KibiwooRegisterProducts.sol";
 
 /// @title A tester contarct for testing Kibiwoo's register products solution.
 /// @author Álvaro Gericke
@@ -12,7 +12,8 @@ import "./../contracts/kibiwooregisterproducts.sol";
 contract TestKibiwooRegisterProducts {
 
 	/// Obtain the address of the Smart Contract.
-	KibiwooRegisterProducts kibiwooregisterproducts = KibiwooRegisterProducts(DeployedAddresses.KibiwooRegisterProducts());
+	KibiwooRegisterProducts kibiwooregisterproducts = 
+		KibiwooRegisterProducts(DeployedAddresses.KibiwooRegisterProducts());
 
 	/// Number of times we have registered a product that allows us to keep track of the product Id.
 	uint expectedProductId = 0;
@@ -37,21 +38,19 @@ contract TestKibiwooRegisterProducts {
 		uint id = registerProduct(name, category);
 		Assert.equal(id, expectedProductId-1, "Registration of product 1 failed. Ids do not match.");
 		// test values of product.
-		(string memory expectedName, , bool expectedIsComplement, uint expectedCategory) = kibiwooregisterproducts.products(id);
+		(, uint expectedCategory, string memory expectedName) = kibiwooregisterproducts.products(id);
 		Assert.equal(name, expectedName, "Name of product 1 not registered correctly.");
 		Assert.equal(category, expectedCategory, "Category of product 1 not registered correctly.");
-		Assert.equal(false, expectedIsComplement, "isComplement field of product 1 not registered correctly.");
 
 		// Register product 2
 		name = "SkiesFromigal";
 		category = 2;
 		id = registerProduct(name, category);
 		Assert.equal(id, expectedProductId-1, "Registration of product 2 failed. Ids do not match.");
-		(expectedName, , expectedIsComplement, expectedCategory) = kibiwooregisterproducts.products(id);
+		(, expectedCategory, expectedName) = kibiwooregisterproducts.products(id);
 		Assert.equal(name, expectedName, "Name of product 2 not registered correctly.");
 		Assert.equal(category, expectedCategory, "Category of product 2 not registered correctly.");
-		Assert.equal(false, expectedIsComplement, "isComplement field of product 2 not registered correctly.");
-		// TODO: Test invalid arguments, specially categories
+		// TODO: Test invalid arguments, specially categoriescd Do
 	}
 	
 	/// @notice Test the retireval of productToStore array.
@@ -73,9 +72,16 @@ contract TestKibiwooRegisterProducts {
 		// Test that this contract address has 2 products created.
 		uint numProducts = kibiwooregisterproducts.storeProductCount(expectedOwner);
 		// \x27 is the ASCII hex value for the character `'`
-		Assert.equal(numProducts, expectedNumProducts, "Number of products for this contract\x27s address is wrong, should be 2.");
+		Assert.equal(
+			numProducts, 
+			expectedNumProducts, 
+			"Number of products for this contract\x27s address is wrong, should be 2."
+		);
 		// Test that other address has number of Products total to 0.
-		numProducts = kibiwooregisterproducts.storeProductCount(address(0xa50b4f040acb653735a0d496c34c1b6b5a635e1b21de334fb2427f3e866fbc47));
+		numProducts = kibiwooregisterproducts
+			.storeProductCount(
+				address(0xa50b4f040acb653735a0d496c34c1b6b5a635e1b21de334fb2427f3e866fbc47)
+			);
 		Assert.equal(0, numProducts, "Number of products of a random address failed. Should be 0.");
 		// Test that zero address has number of products 0.
 		numProducts = kibiwooregisterproducts.storeProductCount(address(0));

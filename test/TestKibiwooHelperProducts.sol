@@ -2,19 +2,19 @@ pragma solidity ^0.5.2;
 
 import "truffle/Assert.sol";
 import "truffle/DeployedAddresses.sol";
-import "./../contracts/KibiwooManageProducts.sol";
+import "./../contracts/KibiwooHelperProducts.sol";
 
-/// @title A tester contract for testing Kibiwoo's managing products solution.
+/// @title A tester contract for testing Kibiwoo's helper products solidity contract.
 /// @author Álvaro Gericke
 
-contract TestKibiwooManageProducts {
+contract TestKibiwooHelperProducts {
 
 	// TODO: Come up with extreme test cases.
 	
 	/// Obtain the address of the Smart Contract.
-	KibiwooManageProducts kibiwoomanageproducts = 
-		KibiwooManageProducts(
-			DeployedAddresses.KibiwooManageProducts()
+	KibiwooHelperProducts kibiwoohelperproducts = 
+		KibiwooHelperProducts(
+			DeployedAddresses.KibiwooHelperProducts()
 		);
 
 	/// The product Id from which we wiil add complements to.
@@ -32,9 +32,8 @@ contract TestKibiwooManageProducts {
 	/// @param name Name of the product to be registered.
 	/// @param category Number that represents the category to be registered.
 	/// @return Id of the created product.
-	function registerProduct(string memory name, uint category) public returns(uint) {
-		uint id = kibiwoomanageproducts.createNewProduct(name, category);
-		// Add 1 to the expectedProductId. Recall to substract 1 when asserting.
+	function registerProduct (string memory name, uint category) public returns(uint) {
+		uint id = kibiwoohelperproducts.createNewProduct(name, category);
 		expectedProductId++;
 		return id;
 	}
@@ -52,25 +51,12 @@ contract TestKibiwooManageProducts {
 		public returns(uint) 
 	{
 		// Add the complement
-		uint complementId = kibiwoomanageproducts.addComplement(_productId, _subcategory, name);
+		uint complementId = kibiwoohelperproducts.addComplement(_productId, _subcategory, name);
 		// Add 1 to the expectedProductId. Recall to substract 1 when asserting.
 		expectedComplementId++;
 		return complementId;
 	}
 
-	// /// @notice BeforeAll hook for registering several products.
-	// function BeforeAll() public {
-	// 	/// Register first product
-	// 	string memory name = "TablaSurf";
-	// 	uint category = 0;
-	// 	idProduct1 = registerProduct(name, category);
-	// 	Assert.equal(idProduct1, expectedProductId-1, "Registration of product 1 failed. Ids do not match.");
-	// 	// Register product 2
-	// 	name = "SkiesFromigal";
-	// 	category = 2;
-	// 	idProduct2 = registerProduct(name, category);
-	// 	Assert.equal(idProduct2, expectedProductId-1, "Registration of product 2 failed. Ids do not match.");
-	// }
 	
 	/// @notice Test the registering of a complement.
 	function testAddComplement() public {
@@ -94,7 +80,7 @@ contract TestKibiwooManageProducts {
 		);
 		// test values of complement.
 		(uint expectedProduct, uint expectedSubcategory, string memory expectedName) = 
-			kibiwoomanageproducts.complements(complement1Id);
+			kibiwoohelperproducts.complements(complement1Id);
 		Assert.equal(
 			name, 
 			expectedName, 
@@ -107,6 +93,7 @@ contract TestKibiwooManageProducts {
 		);
 		Assert.equal(idProduct1, expectedProduct, "Product of complement 1 failed.");
 	}
+
 
 	/// @notice Test the retrieval of storeToProductCount array
 	function testStoreProductCount() public {
@@ -121,7 +108,7 @@ contract TestKibiwooManageProducts {
 		);
 		uint expectedNumProducts = 2;
 		// Test that this contract address has 2 products created.
-		uint numProducts = kibiwoomanageproducts.storeProductCount(expectedOwner);
+		uint numProducts = kibiwoohelperproducts.storeProductCount(expectedOwner);
 		// \x27 is the ASCII hex value for the character `'`
 		Assert.equal(
 			numProducts, 
@@ -129,25 +116,26 @@ contract TestKibiwooManageProducts {
 			"Number of products for this contract\x27s address is wrong, should be 2."
 		);
 		// Test that other address has number of Products total to 0.
-		numProducts = kibiwoomanageproducts.storeProductCount(
+		numProducts = kibiwoohelperproducts.storeProductCount(
 				address(0xa50b4f040acb653735a0d496c34c1b6b5a635e1b21de334fb2427f3e866fbc47)
 		);
 		Assert.equal(0, numProducts, "Number of products of a random address failed. Should be 0.");
 		// Test that zero address has number of products 0.
-		numProducts = kibiwoomanageproducts.storeProductCount(address(0));
+		numProducts = kibiwoohelperproducts.storeProductCount(address(0));
 		Assert.equal(0, numProducts, "Number of products of a address 0 failed. Should be 0.");
 	}
+
 
 	/// @notice Test the retrieval of storeToProductCount array
 	function testProductComplementCount() public {
 		Assert.equal(
 			1, 
-			kibiwoomanageproducts.productComplementCount(idProduct1), 
+			kibiwoohelperproducts.productComplementCount(idProduct1), 
 			"Number of complements for product 1 failed."
 		);
 		Assert.equal(
 			0, 
-			kibiwoomanageproducts.productComplementCount(idProduct2), 
+			kibiwoohelperproducts.productComplementCount(idProduct2), 
 			"Number of complements for product 2 failed."
 		);
 		// Register another complement for product 1 and one for product 2.
@@ -161,7 +149,7 @@ contract TestKibiwooManageProducts {
 		);
 		// test values of complement.
 		(uint expectedProduct, uint expectedSubcategory, string memory expectedName) = 
-			kibiwoomanageproducts.complements(complement12Id);
+			kibiwoohelperproducts.complements(complement12Id);
 		Assert.equal(
 			name, 
 			expectedName, 
@@ -184,7 +172,7 @@ contract TestKibiwooManageProducts {
 		);
 		// test values of complement.
 		(expectedProduct, expectedSubcategory, expectedName) = 
-			kibiwoomanageproducts.complements(complement2Id);
+			kibiwoohelperproducts.complements(complement2Id);
 		Assert.equal(
 			name, 
 			expectedName, 
@@ -199,35 +187,65 @@ contract TestKibiwooManageProducts {
 		// Test again values of ProducComplementCount
 		Assert.equal(
 			2, 
-			kibiwoomanageproducts.productComplementCount(idProduct1), 
+			kibiwoohelperproducts.productComplementCount(idProduct1), 
 			"Number of complements for product 1 failed."
 		);
 		Assert.equal(
 			1, 
-			kibiwoomanageproducts.productComplementCount(idProduct2), 
+			kibiwoohelperproducts.productComplementCount(idProduct2), 
 			"Number of complements for product 2 failed."
 		);
 		// Test that non-existent product has zero complements.
-		uint numComplements = kibiwoomanageproducts.productComplementCount(10);
+		uint numComplements = kibiwoohelperproducts.productComplementCount(10);
 		Assert.equal(0, numComplements, "Number of complements for non-existent product failed.");
 	}
 
 	/// @notice Test the retrieval of complementToProduct mapping
 	function testComplementToProduct () public {
 		Assert.equal(
-			kibiwoomanageproducts.complementToProduct(complement1Id), 
+			kibiwoohelperproducts.complementToProduct(complement1Id), 
 			idProduct1, 
 			"ComplementToProduct failed for complement 1 of product 1."
 		);
 		Assert.equal(
-			kibiwoomanageproducts.complementToProduct(complement12Id), 
+			kibiwoohelperproducts.complementToProduct(complement12Id), 
 			idProduct1, 
 			"ComplementToProduct failed for complement 2 of product 1."
 		);
 		Assert.equal(
-			kibiwoomanageproducts.complementToProduct(complement2Id), 
+			kibiwoohelperproducts.complementToProduct(complement2Id), 
 			idProduct2, 
 			"ComplementToProduct failed for complement 1 of product 2."
+		);
+	}
+
+
+	/// @notice Test the retrieval of all products of a specific shop or owner
+	function testGetProductsByShop () public {
+		uint[] memory productsResult = kibiwoohelperproducts.getProductsByShop(expectedOwner);
+		Assert.equal(
+			2, 
+			productsResult.length, 
+			"Number of products for this contract\x27s address should be 2."
+		);
+		Assert.equal(0, productsResult[0], "First product Id of this owner should be 0");
+		Assert.equal(1, productsResult[1], "Last product Id of this owner should be 1");
+		// Test that other address has number of Products total to 0.
+		productsResult = 
+			kibiwoohelperproducts.getProductsByShop(
+				address(0xa50b4f040acb653735a0d496c34c1b6b5a635e1b21de334fb2427f3e866fbc47)
+			);
+		Assert.equal(
+			0, 
+			productsResult.length, 
+			"Number of products of a random address failed. Should be 0."
+		);
+		// Test that zero address has number of products 0.
+		productsResult = kibiwoohelperproducts.getProductsByShop(address(0));
+		Assert.equal(
+			0, 
+			productsResult.length, 
+			"Number of products of th zero address failed. Should be 0."
 		);
 	}
 }
