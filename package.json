@@ -6,7 +6,7 @@
     "test": "test"
   },
   "dependencies": {
-    "openzeppelin-solidity": "^2.2.0",
+    "openzeppelin-solidity": "^2.3.0",
     "web3": "github:ethereum/web3.js"
   },
   "devDependencies": {},
