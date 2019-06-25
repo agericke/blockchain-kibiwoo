@@ -8,6 +8,7 @@ var KibiwooManageProducts = artifacts.require("KibiwooManageProducts");
 var KibiwooHelperProducts = artifacts.require("KibiwooHelperProducts");
 var ERC165 = artifacts.require("ERC165");
 var KibiwooOwnership = artifacts.require("KibiwooOwnership");
+var Kibiwoo = artifacts.require("Kibiwoo");
 
 module.exports = function(deployer) {
 	//deployer.deploy(Ownable);
@@ -16,7 +17,7 @@ module.exports = function(deployer) {
 		SafeMath, 
 		[
 			Counters, 
-			KibiwooRegisterProducts, 
+			Kibiwoo, 
 			KibiwooManageProducts, 
 			KibiwooHelperProducts, 
 			KibiwooOwnership
@@ -26,16 +27,16 @@ module.exports = function(deployer) {
 	deployer.link(
 		Counters, 
 		[
-			KibiwooRegisterProducts, 
+			Kibiwoo, 
 			KibiwooManageProducts, 
 			KibiwooHelperProducts,
 			KibiwooOwnership
 		]
 	);
-	deployer.deploy(KibiwooRegisterProducts);
-	deployer.deploy(KibiwooManageProducts);
+	deployer.deploy(Kibiwoo);
+	/*deployer.deploy(KibiwooManageProducts);
 	deployer.deploy(KibiwooHelperProducts);
 	deployer.deploy(Address);
 	deployer.link(Address, KibiwooOwnership);
-	deployer.deploy(KibiwooOwnership);
+	deployer.deploy(KibiwooOwnership);*/
 };

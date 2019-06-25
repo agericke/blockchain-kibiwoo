@@ -6,7 +6,7 @@ import 'openzeppelin-solidity/contracts/drafts/Counters.sol';
 
 /// @author Álvaro Gericke
 /// @title A contract for managing Kibiwoo's products registration.
-contract KibiwooRegisterProducts is Ownable {
+contract Kibiwoo is Ownable {
     // TODO: Use Safemath library from openzeppelin
     using SafeMath for uint256;
     using Counters for Counters.Counter;
@@ -39,7 +39,7 @@ contract KibiwooRegisterProducts is Ownable {
     /// Enum type for defining complements subcategories
     enum Subcategories {Wetsuit, Helmet, Boots}
 
-    address payable kibiwooAdmin;
+    address payable public kibiwooAdmin;
 
     /// The number of digits that the identifier of the product will have.
     ///     The first 16 digits correspond to the shop identifier.
@@ -60,7 +60,7 @@ contract KibiwooRegisterProducts is Ownable {
 
     event NewProduct(uint id, uint sku, uint category, string name);
 
-    // TODO: Need to check if I need to call constructor of Ownable.sol4
+    // TODO: Need to check if I need to call constructor of Ownable.sol
     constructor() public {
         kibiwooAdmin = msg.sender;
     }
