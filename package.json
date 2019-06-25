@@ -6,12 +6,18 @@
     "test": "test"
   },
   "dependencies": {
+    "create-react-app": "^3.0.1",
     "openzeppelin-solidity": "^2.3.0",
     "web3": "github:ethereum/web3.js"
   },
-  "devDependencies": {},
+  "devDependencies": {
+    "bn.js": "^4.11.8",
+    "chai": "^4.2.0",
+    "chai-bn": "^0.1.1",
+    "mocha": "^6.1.4"
+  },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "mocha"
   },
   "keywords": [],
   "author": "",
