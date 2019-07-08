@@ -11,10 +11,12 @@
     "web3": "github:ethereum/web3.js"
   },
   "devDependencies": {
+    "bignumber.js": "^9.0.0",
     "bn.js": "^4.11.8",
     "chai": "^4.2.0",
     "chai-bn": "^0.1.1",
-    "mocha": "^6.1.4"
+    "mocha": "^6.1.4",
+    "openzeppelin-test-helpers": "^0.4.0"
   },
   "scripts": {
     "test": "mocha"

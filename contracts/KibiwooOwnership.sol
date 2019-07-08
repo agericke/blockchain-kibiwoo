@@ -96,7 +96,7 @@ contract KibiwooOwnership is KibiwooHelperProducts, ERC165, IERC721{
     /// Can only be called by the token owner (store) or an approved operator.
     /// @param approved address to be approved for the given token ID.
     /// @param tokenId uint256 ID of the token to be approved.
-    function approve(address approved, uint256 tokenId) public payable {
+    function approve(address approved, uint256 tokenId) public {
         address owner = ownerOf(tokenId);
         require(approved != owner, "ERC721: approval to current owner.");
         require(msg.sender == owner || isApprovedForAll(owner, msg.sender),
@@ -147,7 +147,7 @@ contract KibiwooOwnership is KibiwooHelperProducts, ERC165, IERC721{
     /// @param from The current owner of the Kibiwoo Product.
     /// @param to The new owner.
     /// @param tokenId The Kibiwoo Product ID to transfer.
-    function transferFrom(address from, address to, uint256 tokenId) public payable {
+    function transferFrom(address from, address to, uint256 tokenId) public {
         require(
             _isApprovedOrOwner(msg.sender, tokenId), 
             "ERC721: transfer caller is not owner nor approved."
@@ -166,7 +166,7 @@ contract KibiwooOwnership is KibiwooHelperProducts, ERC165, IERC721{
     /// @param from The current owner of the Kibiwoo Product.
     /// @param to The new owner.
     /// @param tokenId The Kibiwoo Product to transfer.
-    function safeTransferFrom(address from, address to, uint256 tokenId) public payable {
+    function safeTransferFrom(address from, address to, uint256 tokenId) public {
         safeTransferFrom(from, to, tokenId, "");
     }
 
@@ -182,7 +182,6 @@ contract KibiwooOwnership is KibiwooHelperProducts, ERC165, IERC721{
     /// @param _data bytes data to send along with a safe transfer check
     function safeTransferFrom(address from, address to, uint256 tokenId, bytes memory _data) 
         public
-        payable 
     {
         transferFrom(from, to, tokenId);
         require(
