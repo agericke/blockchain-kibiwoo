@@ -11,6 +11,7 @@ import 'openzeppelin-solidity/contracts/token/ERC721/ERC721.sol';
 /// @author Álvaro Gericke
 /// @title A contract for managing Kibiwoo's products registration.
 contract Kibiwoo is Ownable, ERC721 {
+
     // TODO: Use Safemath library from openzeppelin
     using SafeMath for uint256;
     using Counters for Counters.Counter;
