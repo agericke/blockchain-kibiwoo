@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="UTF-8">
+	<title>Kibiwoo First Front-End</title>
+	<script language="javascript" type="text/javascript" src="https://cdn.jsdelivr.net/gh/ethereum/web3.js@1.0.0-beta.34/dist/web3.min.js"></script>
+	<script language="javascript" type="text/javascript" src="js/kibiwoo_abi.js"></script>
+</head>
+<body>
+	
+	<div id="txStatus"></div>
+	<div id="products"></div>
+
+	<script>
+
+		// Var for storing the contract ABI
+		var kibiwooCrypto;
+		var userAccount;
+
+		// function that starts the appp
+		function startApp() {
+			// Var that stores the address of Kibiwoo's Smart contract in the blockchain.
+			var kibiwooCryptoAddress ="YOUR_CONTRACT_ADDRESS";
+			kibiwooCrypto = web3js.eth.Contract = (kibiwooCrytpABI, kibiwooCryptoAddress);
+
+			var accountInterval = setInterval(function() {
+				//Check if account has changed
+				if (web3.eth.accounts[0] !== userAccount) {
+					userAccount = web3.eth.accounts[0];
+					// Call some function to update the UI with the new account
+					getProductsByOwner(userAccount)
+					.then(displayProducts);
+				}
+			}, 100);
+
+			kibiwooCrypto.events.Transfer({ filter: { _to: userAccount } })
+			.on("data", function(event) {
+				let data = event.returnValues;
+				// The current user just received a product!
+				getProductsByOwner(userAccount).then(displayProducts);
+			}).on("error", console.error);
+		}
+
+		// Function for displaying all the products form a shop
+		function displayProducts(ids) {
+			$("#products").empty();
+			for (id of ids) {
+				// Look up the product details form our contract. Returns a 'product' object
+				getProductDetails(id)
+				.then(function(product) {
+					// Using ES6's "template literals" to inject variables into the HTML.
+					// Append each one to our #products div
+					$("#products").append(`<div class="product">
+						<ul>
+							<li>Name: ${product.name}</li>
+							<li>SKU: ${product.sku}</li>
+							<li>Is a Complement: ${product.isComplement}</li>
+							<li>Category: ${product.category}</li>
+						</ul>
+					</div>`);
+				});
+			}
+		}
+
+		function createNewProduct(name, category) {
+			// This is going to take a while, so update the UI to let the user know
+			// the transaction has been sent
+			$("#txStatus").text("Creating new product on the blockchain. This may take a while...");
+			// Send the tx to our contract:
+			return kibiwooCrypto.methods.createNewProduct(name, category)
+			.send({ from: userAccount })
+			.on("receipt", function(receipt) {
+				$("#txStatus").text("Successfully created " + name + "with category" + category + "!");
+				// Transaction was accepted into the blockchain, let's redraw the UI
+				getProductsByOwner(userAccount).then(displayProducts);
+			})
+			.on("error", function(error) {
+				// Do something to alert the user their transaction has failed
+				$("#txStatus").text(error);
+			});
+		}
+
+		// Function athat obtains the details for a specific product
+		function getProductDetails(id) {
+			return kibiwooCrypto.methods.products(id).call();
+		}
+
+		// Function to obtain the owner for a specific product
+		function productToOwner(id) {
+			return kibiwooCrypto.methods.productToStore(id).call();
+		}
+
+		// Function to get all the products owned by a specific shop.
+		function getProductsByOwner(address _owner) {
+			return kibiwooCrypto.methods.getProductsByShop(_owner).call();
+		}
+
+		window.addEventListener('load', function() {
+
+			// Checking if Web3 has been injected by the browser (MISt/Metamask)
+			if (typeof web3 !== 'undefined') {
+				//Use Mist/Metamask's provider
+				web3js = new Web3(web3.currentProvider);
+			} else {
+				// Handle the case where the user doesn't have web3. Probably
+				// show them a message telling them to install Metamask in
+				// order to use our app.
+			}
+
+			// Now you can start your app & access web3js freely:
+			startApp()
+		})
+	</script>
+</body>
+</html>

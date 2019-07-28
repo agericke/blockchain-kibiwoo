@@ -16,9 +16,11 @@
     "chai": "^4.2.0",
     "chai-bn": "^0.1.1",
     "mocha": "^6.1.4",
-    "openzeppelin-test-helpers": "^0.4.0"
+    "openzeppelin-test-helpers": "^0.4.0",
+    "lite-server": "^2.3.0"
   },
   "scripts": {
+    "dev": "lite-server",
     "test": "mocha"
   },
   "keywords": [],
