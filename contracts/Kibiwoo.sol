@@ -60,9 +60,12 @@ contract Kibiwoo is Ownable, ERC721 {
     mapping (uint256 => uint256)  private _complementToToken;
     /// Mapping from productID to complements count.
     mapping (uint256 => Counters.Counter) private _tokenComplementCount;
+    /// Mapping from productId to bool indicating if product is booked.
+    mapping (uint256 => bool) private _productBooked;
 
     event NewProduct(uint256 id, uint256 sku, uint256 category, string name);
     event NewComplement(uint256 tokenId, uint256 complementId, uint256 subcategory, string name);
+    event Book(address indexed booker, uint256 tokenId);
 
     constructor() public {
         kibiwooAdmin = msg.sender;
@@ -113,6 +116,7 @@ contract Kibiwoo is Ownable, ERC721 {
     function createNewProduct(string memory _name, uint256 _category) public returns(uint256) {
         uint256 randSku = _generateRandomSku(_name);
         uint256 id = _registerProduct(_name, randSku, _category);
+        
         return id;
     }
 
@@ -130,10 +134,29 @@ contract Kibiwoo is Ownable, ERC721 {
         return complementId;
     }
 
+    /// @notice Mark a product as booked.
+    /// @dev Only use for first version of front-end.
+    /// @param tokenId Id of the product which we wiil mark as booked.
+    /// @return bool Actual state of booking. (True indicates booked).
+    function book(uint256 tokenId) public returns(bool) {
+        // TODO: We check this condition already with isBooked, so not necessary.
+        //require(_exists(tokenId), "ERC721: book query for nonexistent token");
+
+        _book(tokenId);
+
+        return true;
+    }
+
     /// @notice Gets the actual kibiwoo Administrator.
     /// @return address representing Kibiwoo's Administrator address.
-    function getAdmin() public view returns (address) {
+    function getAdmin() public view returns(address) {
         return kibiwooAdmin;
+    }
+
+    /// @notice Gets the total amount of products created.
+    /// @return uint256 representing the amount of products created.
+    function getProductsCount() public view returns(uint256) {
+        return products.length;
     }
 
     /// @notice Gets the productId for a specific complement Id.
@@ -154,6 +177,16 @@ contract Kibiwoo is Ownable, ERC721 {
         return _tokenComplementCount[tokenId].current();
     }
 
+    /// @notice Check if a product is booked.
+    /// @param tokenId The product Id to check if it is booked.
+    /// @return bool indicating if it is booked.
+    function isBooked(uint256 tokenId) public view returns(bool) {
+
+        require(_exists(tokenId), "ERC721: isBooked query for nonexistent token");
+        
+        return _productBooked[tokenId];
+    }
+
     /// @notice Creates a new product with id the consecutive one and name specified by caller.
     /// @dev If no name is assigned, it will be assigned an empty string.
     /// @param _name String identifying the  name of the product.
@@ -170,6 +203,10 @@ contract Kibiwoo is Ownable, ERC721 {
 
         _mint(msg.sender, id);
 
+        // Create new entry with book equal to false.
+        // TODO: False is default value so maybe this is nt necessary.
+        _productBooked[id] = false;
+
         emit NewProduct(id, _sku, _category, _name);
 
         return id;
@@ -181,9 +218,9 @@ contract Kibiwoo is Ownable, ERC721 {
     /// @param _subcategory An integer that represents the category of the product.
     /// @param _name String identifying the  name of the product.
     /// @return The id that uniquely identifies the registered product.
-    function _registerComplement(uint _productId, uint _subcategory, string memory _name) 
+    function _registerComplement(uint256 _productId, uint256 _subcategory, string memory _name) 
         internal 
-        returns (uint) 
+        returns (uint256) 
     {
         // TODO: deal with categories variable.
         require(uint256(Subcategories.Boots) >= _subcategory, "Invalid subcategory.");
@@ -195,6 +232,19 @@ contract Kibiwoo is Ownable, ERC721 {
         emit NewComplement(_productId, complementId, _subcategory, _name);
         
         return complementId;
+    }
+
+    /// @notice Internal function for handling the booking of a product.
+    /// @dev Only use for first version of front-end.
+    /// @param _productId Id of the product which we wiil mark as booked.
+    /// @return bool Actual state of booking. (True indicates booked).
+    function _book(uint256 _productId) internal {
+
+        require(!isBooked(_productId), "Cannot Booked an already booked product.");
+        
+        _productBooked[_productId] = true;
+
+        emit Book(msg.sender, _productId);
     }
 
     /// @notice Generates Random sku as an identifier for the product.
