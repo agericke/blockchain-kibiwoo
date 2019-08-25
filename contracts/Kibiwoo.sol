@@ -3,14 +3,15 @@ pragma solidity ^0.5.0;
 import 'openzeppelin-solidity/contracts/ownership/Ownable.sol';
 import 'openzeppelin-solidity/contracts/math/SafeMath.sol';
 import 'openzeppelin-solidity/contracts/drafts/Counters.sol';
-import 'openzeppelin-solidity/contracts/token/ERC721/ERC721.sol';
+import 'openzeppelin-solidity/contracts/token/ERC721/ERC721Metadata.sol';
+import './BookingContract.sol';
 
 // TODO: Check gas consumption of every function and see if it is posible to optimize.
 // TODO: Change solution to a ERC721 Metadata one.
 
 /// @author Álvaro Gericke
 /// @title A contract for managing Kibiwoo's products registration.
-contract Kibiwoo is Ownable, ERC721 {
+contract Kibiwoo is Ownable, ERC721Metadata {
 
     // TODO: Use Safemath library from openzeppelin
     using SafeMath for uint256;
@@ -56,21 +57,29 @@ contract Kibiwoo is Ownable, ERC721 {
     Product[] public products;
     Complement[] public complements;
 
+    /// Mapping from tokenId to booking contract
+    mapping(uint256 => address) private _tokenToContractAddress;
     /// Mapping from complement to product.
     mapping (uint256 => uint256)  private _complementToToken;
     /// Mapping from productID to complements count.
     mapping (uint256 => Counters.Counter) private _tokenComplementCount;
-    /// Mapping from productId to bool indicating if product is booked.
-    mapping (uint256 => bool) private _productBooked;
+    
 
-    event NewProduct(uint256 id, uint256 sku, uint256 category, string name);
+    event NewProduct(
+        address indexed bookingContractAddress, 
+        uint256 indexed id, 
+        uint256 sku, 
+        uint256 category, 
+        string name
+    );
     event NewComplement(uint256 tokenId, uint256 complementId, uint256 subcategory, string name);
-    event Book(address indexed booker, uint256 tokenId);
 
-    constructor() public {
+    constructor (string memory name, string memory symbol) ERC721Metadata(name, symbol) public {
         kibiwooAdmin = msg.sender;
     }
 
+    ///@notice special function for allowing the Samrt contract receive ether in case any of the 
+    ///         existing functions is called
     function() external payable {
 
     }
@@ -134,23 +143,18 @@ contract Kibiwoo is Ownable, ERC721 {
         return complementId;
     }
 
-    /// @notice Mark a product as booked.
-    /// @dev Only use for first version of front-end.
-    /// @param tokenId Id of the product which we wiil mark as booked.
-    /// @return bool Actual state of booking. (True indicates booked).
-    function book(uint256 tokenId) public returns(bool) {
-        // TODO: We check this condition already with isBooked, so not necessary.
-        //require(_exists(tokenId), "ERC721: book query for nonexistent token");
-
-        _book(tokenId);
-
-        return true;
-    }
-
     /// @notice Gets the actual kibiwoo Administrator.
     /// @return address representing Kibiwoo's Administrator address.
     function getAdmin() public view returns(address) {
         return kibiwooAdmin;
+    }
+
+    /// @notice Get the contract booking address for a specific token.
+    /// @return uint256 address of the contract.
+    function getContractBookingAdrress(uint256 tokenId) public view returns(address) {
+        require(_exists(tokenId), "ERC721: contract booking address query for nonexistent token.");
+
+        return _tokenToContractAddress[tokenId];
     }
 
     /// @notice Gets the total amount of products created.
@@ -177,16 +181,6 @@ contract Kibiwoo is Ownable, ERC721 {
         return _tokenComplementCount[tokenId].current();
     }
 
-    /// @notice Check if a product is booked.
-    /// @param tokenId The product Id to check if it is booked.
-    /// @return bool indicating if it is booked.
-    function isBooked(uint256 tokenId) public view returns(bool) {
-
-        require(_exists(tokenId), "ERC721: isBooked query for nonexistent token");
-        
-        return _productBooked[tokenId];
-    }
-
     /// @notice Creates a new product with id the consecutive one and name specified by caller.
     /// @dev If no name is assigned, it will be assigned an empty string.
     /// @param _name String identifying the  name of the product.
@@ -198,16 +192,28 @@ contract Kibiwoo is Ownable, ERC721 {
         returns (uint256) 
     {
         require(uint256(Categories.Ski) >= _category, "Invalid category.");
-        uint256 min_rent_time = 1 hours;
+        uint256 min_rent_time;
+
+        if (_category == uint256(Categories.Surf)) {
+            min_rent_time = 1 hours;
+        } else {
+            min_rent_time = 1 days;
+        }
+
         uint256 id = products.push(Product(_sku, _category, min_rent_time, _name)) - 1;
 
         _mint(msg.sender, id);
 
-        // Create new entry with book equal to false.
-        // TODO: False is default value so maybe this is nt necessary.
-        _productBooked[id] = false;
+        string memory uri = "http://127.0.0.1:7545/product-page";
 
-        emit NewProduct(id, _sku, _category, _name);
+        _setTokenURI(id, uri);
+
+        // Logic for creating the new contract variable.
+        BookingContract newContract = new BookingContract(id, uint256(min_rent_time));
+
+        _tokenToContractAddress[id] = address(newContract);
+
+        emit NewProduct(address(newContract), id, _sku, _category, _name);
 
         return id;
     }
@@ -240,11 +246,11 @@ contract Kibiwoo is Ownable, ERC721 {
     /// @return bool Actual state of booking. (True indicates booked).
     function _book(uint256 _productId) internal {
 
-        require(!isBooked(_productId), "Cannot Booked an already booked product.");
+        // require(!isBooked(_productId), "Cannot Booked an already booked product.");
         
-        _productBooked[_productId] = true;
+        // _productBooked[_productId] = true;
 
-        emit Book(msg.sender, _productId);
+        // emit Book(msg.sender, _productId);
     }
 
     /// @notice Generates Random sku as an identifier for the product.

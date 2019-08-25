@@ -11,7 +11,9 @@ const Kibiwoo = artifacts.require("Kibiwoo.sol");
 contract("Kibiwoo", function ([kibiwooOwner, shop1, shop2, customer1, customer2, ...accounts]) {
 
     beforeEach(async function () {
-        this.kibiwooInstance = await Kibiwoo.new();
+        this.contractName = "KibiwooProductsTFM";
+        this.contractSymbol = "KBW";
+        this.kibiwooInstance = await Kibiwoo.new(this.contractName, this.contractSymbol);
     });
     
     describe(
@@ -98,6 +100,8 @@ contract("Kibiwoo", function ([kibiwooOwner, shop1, shop2, customer1, customer2,
                 this.category = new web3.utils.BN(0);  
                 ({ logs: this.logs } = await 
                     this.kibiwooInstance.createNewProduct(this.name, this.category, {from: shop1}));
+                    this.expectedContractAddress = await 
+                    this.kibiwooInstance.getContractBookingAdrress(this.expectedId);
             });
 
             it('Registering a product emits NewProduct and Transfer event.', async function () {
@@ -109,7 +113,12 @@ contract("Kibiwoo", function ([kibiwooOwner, shop1, shop2, customer1, customer2,
                 expectEvent.inLogs(
                     this.logs,
                     'NewProduct',
-                    {id: this.expectedId, category: this.category, name: this.name}
+                    {
+                        bookingContractAddress: this.expectedContractAddress, 
+                        id: this.expectedId, 
+                        category: this.category, 
+                        name: this.name
+                    }
                 );
             });
 
@@ -218,6 +227,30 @@ contract("Kibiwoo", function ([kibiwooOwner, shop1, shop2, customer1, customer2,
                     ).to.be.bignumber.equal(web3.utils.toBN(4));
                 });
                 
+            });
+        });
+
+        describe('#Test token to contract address mapping variable', function () {
+
+            it('Reverts when querying non existing token.', async function () {
+                await expectRevert(
+                    this.kibiwooInstance.getContractBookingAdrress(10),
+                    "ERC721: contract booking address query for nonexistent token."
+                );
+            });
+
+            context("With valid arguments.", function () {
+
+                 beforeEach('Register several products.', async function () {
+                    await this.kibiwooInstance.createNewProduct('Producto1', 0, {from: shop1});
+                });
+
+                it('Check that it returns correct values.', async function () {
+                    let contractAddress = await this.kibiwooInstance.getContractBookingAdrress(0);
+                    expect(
+                        await this.kibiwooInstance.getContractBookingAdrress(0)
+                    ).to.equal(contractAddress);
+                });
             });
         });
     });
@@ -607,11 +640,50 @@ contract("Kibiwoo", function ([kibiwooOwner, shop1, shop2, customer1, customer2,
                     expect(await this.kibiwooInstance.isBooked(0)).to.be.true;
                     expect(await this.kibiwooInstance.isBooked(3)).to.be.true;
                 });
-            })
-                
+            })       
+        });
+    });
+
+    describe('#Test name and symbol variables from ERC721 Metadata extension', function () {
+
+        it('Check name and symbol of Metadata Info.', async function () {
+            expect(
+                await this.kibiwooInstance.name.call(), 
+                'Kibiwoo Contract name does not match.'
+            ).to.equal(this.contractName);
+
+            expect(
+                await this.kibiwooInstance.symbol.call(),
+                'Kibiwoo Symbol does not match.'
+            ).to.equal(this.contractSymbol);
+        });
+    });
+
+    describe('#Test URI Metadata creation for a product', function () {
+        
+        it('Reverts if setting an URI for a non-existant product.', async function () {
+            let id = 50;
+            await expectRevert(
+                this.kibiwooInstance.tokenURI(id, {from: shop1}), 
+                'ERC721Metadata: URI query for nonexistent token'
+            );
         });
 
+        context('With valid arguments', function () {
 
+            beforeEach('Register several products.', async function () {
+                await this.kibiwooInstance.createNewProduct('Producto1', 0, {from: shop1});
+                await this.kibiwooInstance.createNewProduct('Producto2', 1, {from: shop1});
+                await this.kibiwooInstance.createNewProduct('Producto3', 2, {from: shop1});
+                await this.kibiwooInstance.createNewProduct('Producto4', 0, {from: shop2});
+                await this.kibiwooInstance.createNewProduct('Producto5', 0, {from: shop2});
+            });
+
+            it('Query the URI for several products', async function() {
+                let expectedURI = 'http://127.0.0.1:7545/product-page'
+                expect(await this.kibiwooInstance.tokenURI(0)).to.equal(expectedURI);
+                expect(await this.kibiwooInstance.tokenURI(4)).to.equal(expectedURI);
+            })
+        });
     });
 });
-
