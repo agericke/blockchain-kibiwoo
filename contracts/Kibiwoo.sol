@@ -58,7 +58,7 @@ contract Kibiwoo is Ownable, ERC721Metadata {
     Complement[] public complements;
 
     /// Mapping from tokenId to booking contract
-    mapping(uint256 => address) private _tokenToContractAddress;
+    mapping(uint256 => address payable) private _tokenToContractAddress;
     /// Mapping from complement to product.
     mapping (uint256 => uint256)  private _complementToToken;
     /// Mapping from productID to complements count.
@@ -129,6 +129,33 @@ contract Kibiwoo is Ownable, ERC721Metadata {
         return id;
     }
 
+    /// @notice Function for handling the booking of a product.
+    /// @param _productId Id of the product which we want to book.
+    /// @param _startTimeBlock start time of the booking.
+    /// @param _stopTimeBlock stop time of the booking.
+    function book(uint256 _productId, uint256 _startTimeBlock, uint256 _stopTimeBlock) public {
+
+        require(_exists(_productId), "ERC721: booking query for nonexistent token.");
+
+        BookingContract bookingContract = BookingContract(getContractBookingAddress(_productId));
+        
+        bookingContract.book(msg.sender, _startTimeBlock, _stopTimeBlock);
+    }
+
+    /// @notice Function for cancelling a specific booking of a product.
+    /// @param _productId Id of the product which we want to book.
+    /// @param _startTimeBlock start time of the booking.
+    function cancel(uint256 _productId, uint256 _startTimeBlock) public {
+
+        require(_exists(_productId), "ERC721: cancel booking query for nonexistent token.");
+
+        BookingContract bookingContract = BookingContract(getContractBookingAddress(_productId));
+        
+        uint256 reservationId = bookingContract.getReservationIdFromStartTimeBlock(_startTimeBlock);
+        
+        bookingContract.cancelBooking(msg.sender, reservationId);
+    }
+
     /// @notice Adds a new complement to the actual product.
     /// @dev If no name is assigned, it will be assigned an empty string.
     /// @param _productId The unique identifier of the product to which a complement will be added.
@@ -151,7 +178,7 @@ contract Kibiwoo is Ownable, ERC721Metadata {
 
     /// @notice Get the contract booking address for a specific token.
     /// @return uint256 address of the contract.
-    function getContractBookingAdrress(uint256 tokenId) public view returns(address) {
+    function getContractBookingAddress(uint256 tokenId) public view returns(address payable) {
         require(_exists(tokenId), "ERC721: contract booking address query for nonexistent token.");
 
         return _tokenToContractAddress[tokenId];
@@ -238,19 +265,6 @@ contract Kibiwoo is Ownable, ERC721Metadata {
         emit NewComplement(_productId, complementId, _subcategory, _name);
         
         return complementId;
-    }
-
-    /// @notice Internal function for handling the booking of a product.
-    /// @dev Only use for first version of front-end.
-    /// @param _productId Id of the product which we wiil mark as booked.
-    /// @return bool Actual state of booking. (True indicates booked).
-    function _book(uint256 _productId) internal {
-
-        // require(!isBooked(_productId), "Cannot Booked an already booked product.");
-        
-        // _productBooked[_productId] = true;
-
-        // emit Book(msg.sender, _productId);
     }
 
     /// @notice Generates Random sku as an identifier for the product.

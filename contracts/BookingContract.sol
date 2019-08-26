@@ -22,7 +22,7 @@ contract BookingContract is ERC721Enumerable {
     /// Constant that represents the amount of time each block represents.
     uint256 private _blockTime;
     // TreeMap that stores all reservations.
-    TreeMap.Map timeBlocksMap;
+    TreeMap.Map public timeBlocksMap;
     /// Mapping from reservationId to startTimeStamp
     mapping(uint256 => uint256) public startTimestamps;
     /// Mapping from reservationId to endTimeStamp
@@ -36,7 +36,10 @@ contract BookingContract is ERC721Enumerable {
         uint256 startTimeBlock, 
         uint256 stopTimeBlock
     );
-    //event Cancel();
+    event CancelBooking(
+        address indexed booker,
+        uint256 indexed bookingId
+    );
 
     constructor (uint256 tokenIdRef, uint256 min_rent_time) public {
         _tokenIdReference = tokenIdRef;
@@ -48,59 +51,6 @@ contract BookingContract is ERC721Enumerable {
     function() external payable {
 
     }
-
-    // /// @notice Book a list of block times.
-    // /// @param tokenIds List of block times to be booked.
-    // /// @param booker address of booker.
-    // function book(uint256[] tokenIds, uint256 startBlockTime, uint256 stopBlockTime) public {        
-    //     _book(_tokenIds, msg.sender);
-    // }
-
-    /// @notice Gets the tokenId it refers to in the product management contract.
-    /// @return uint256 representing product's Id this token refers to.
-    function getTokenIdRef() public view returns(uint256) {
-        return _tokenIdReference;
-    }
-
-    /// @notice Gets the number of seconds each block of time represents.
-    /// @return uint256 that represents the amount of time in seconds of each block time.
-    function getBlockTime() public view returns(uint256) {
-        return _blockTime;
-    }
-
-    /// @notice Check if timeslots between startTimeBlock and stopTimeBlock are available.
-    /// @param _startTimeBlock The start time block for the reservation.
-    /// @param _stopTimeBlock The end time block for the reservation.
-    /// @return bool indicating if the token Id is available or not.
-    function checkAvailability(uint256 _startTimeBlock, uint256 _stopTimeBlock) 
-    public 
-    view 
-    returns(bool) 
-    {
-        
-        require(_stopTimeBlock > _startTimeBlock, "BookingContract: StopTimeBlock must end after startTimeBlock.");
-        require((_stopTimeBlock - _startTimeBlock) <= uint256(RESERVATION_DURATION_LIMIT), "BookingContract: Reservation duration must not exceed limit");
-
-        bool found;
-        uint256 reservationId;
-        uint256 startTime;
-
-        // find closest event that started after _start
-        (found, startTime, reservationId) = timeBlocksMap.ceilingEntry(_startTimeBlock);
-        if (found && _stopTimeBlock > startTime) {
-          return false;
-        }
-
-        // find closest event that started before _start
-        (found, startTime, reservationId) = timeBlocksMap.floorEntry(_startTimeBlock);
-        if (found) {
-            if (stopTimestamps[reservationId] > _startTimeBlock) {
-                return false;
-            }
-        }
-
-        return true;
-    }  
 
     /// @notice Reserve the period between time `_start` to time `_stop`
     /// @dev A successful booking must ensure each time slot in the range _start to _stop
@@ -134,5 +84,89 @@ contract BookingContract is ERC721Enumerable {
         emit NewBooking(_booker, tokenId, _start, _stop);
 
         return tokenId;
+    }
+
+    /// @notice Cancel an existing booking. Only the owner can do it.
+    /// @param _bookingId Booking Identifier inside this contract.
+    /// @param origin equals to the msg.sender value of the origin transaction.
+    function cancelBooking(address origin, uint256 _bookingId)
+    public
+    {
+        require(_exists(_bookingId), "BookingContract: Booking does not exist");
+
+        uint256 startTime = startTimestamps[_bookingId];
+
+        _burn(origin, _bookingId);
+
+        delete startTimestamps[_bookingId];
+        delete stopTimestamps[_bookingId];
+        timeBlocksMap.remove(startTime);
+
+        emit CancelBooking(origin, _bookingId);
+    }
+
+    /// @notice Gets the tokenId it refers to in the product management contract.
+    /// @return uint256 representing product's Id this token refers to.
+    function getTokenIdRef() public view returns(uint256) {
+        return _tokenIdReference;
+    }
+
+    /// @notice Gets the number of seconds each block of time represents.
+    /// @return uint256 that represents the amount of time in seconds of each block time.
+    function getBlockTime() public view returns(uint256) {
+        return _blockTime;
+    }
+
+    /// @notice Get the reservationId for a specific startTime
+    /// @param _startTimeBlock The start timeblock save as a key in the TreeMap
+    /// @return uint256 representating the reservationId associated to that startTime.
+    function getReservationIdFromStartTimeBlock(uint256 _startTimeBlock) 
+    public 
+    view 
+    returns(uint256) 
+    {
+        bool found;
+        uint256 reservationId;
+
+        (found, reservationId) = timeBlocksMap.get(_startTimeBlock);
+
+        if (!found) {
+            revert("BookingContract: No Reservation Id for that startTimeBlock.");
+        }
+
+        return reservationId;
+    }
+
+    /// @notice Check if timeslots between startTimeBlock and stopTimeBlock are available.
+    /// @param _startTimeBlock The start time block for the reservation.
+    /// @param _stopTimeBlock The end time block for the reservation.
+    /// @return bool indicating if the token Id is available or not.
+    function checkAvailability(uint256 _startTimeBlock, uint256 _stopTimeBlock) 
+    public 
+    view 
+    returns(bool) 
+    {
+        
+        require(_stopTimeBlock > _startTimeBlock, "BookingContract: StopTimeBlock must end after startTimeBlock.");
+        require((_stopTimeBlock - _startTimeBlock) <= uint256(RESERVATION_DURATION_LIMIT), "BookingContract: Reservation duration must not exceed limit");
+
+        bool found;
+        uint256 reservationId;
+        uint256 startTime;
+
+        // find closest event that started after _start
+        (found, startTime, reservationId) = timeBlocksMap.ceilingEntry(_startTimeBlock);
+        if (found && _stopTimeBlock > startTime) {
+          return false;
+        }
+
+        // find closest event that started before _start
+        (found, startTime, reservationId) = timeBlocksMap.floorEntry(_startTimeBlock);
+        if (found) {
+            if (stopTimestamps[reservationId] > _startTimeBlock) {
+                return false;
+            }
+        }
+       return true;
     }
 }

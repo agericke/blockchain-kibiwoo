@@ -100,8 +100,8 @@ contract("Kibiwoo", function ([kibiwooOwner, shop1, shop2, customer1, customer2,
                 this.category = new web3.utils.BN(0);  
                 ({ logs: this.logs } = await 
                     this.kibiwooInstance.createNewProduct(this.name, this.category, {from: shop1}));
-                    this.expectedContractAddress = await 
-                    this.kibiwooInstance.getContractBookingAdrress(this.expectedId);
+                this.expectedContractAddress = await 
+                    this.kibiwooInstance.getContractBookingAddress(this.expectedId);
             });
 
             it('Registering a product emits NewProduct and Transfer event.', async function () {
@@ -234,7 +234,7 @@ contract("Kibiwoo", function ([kibiwooOwner, shop1, shop2, customer1, customer2,
 
             it('Reverts when querying non existing token.', async function () {
                 await expectRevert(
-                    this.kibiwooInstance.getContractBookingAdrress(10),
+                    this.kibiwooInstance.getContractBookingAddress(10),
                     "ERC721: contract booking address query for nonexistent token."
                 );
             });
@@ -246,9 +246,9 @@ contract("Kibiwoo", function ([kibiwooOwner, shop1, shop2, customer1, customer2,
                 });
 
                 it('Check that it returns correct values.', async function () {
-                    let contractAddress = await this.kibiwooInstance.getContractBookingAdrress(0);
+                    let contractAddress = await this.kibiwooInstance.getContractBookingAddress(0);
                     expect(
-                        await this.kibiwooInstance.getContractBookingAdrress(0)
+                        await this.kibiwooInstance.getContractBookingAddress(0)
                     ).to.equal(contractAddress);
                 });
             });
@@ -569,81 +569,6 @@ contract("Kibiwoo", function ([kibiwooOwner, shop1, shop2, customer1, customer2,
         });
     });
 
-    describe('#Test booking functionality of smart contract.', function () {
-        
-        beforeEach('Register several products.', async function () {
-            // TODO: generalize this function to store logs so that id of products is extracted from there.
-            await this.kibiwooInstance.createNewProduct('Producto1', 0, {from: shop1});
-            await this.kibiwooInstance.createNewProduct('Producto2', 1, {from: shop1});
-            await this.kibiwooInstance.createNewProduct('Producto3', 2, {from: shop1});
-            await this.kibiwooInstance.createNewProduct('Producto4', 0, {from: shop2});
-            await this.kibiwooInstance.createNewProduct('Producto5', 0, {from: shop2});
-        });
-
-        describe('#Test book function.', function () {
-
-            it('Reverts if booking a non-existent product.', async function () {
-
-                await expectRevert(
-                    this.kibiwooInstance.book(10, {from: customer1}), 
-                    "ERC721: isBooked query for nonexistent token."
-                );
-            });
-
-            context('With valid arguments.', function () {
-
-                beforeEach('Book a product and store logs.', async function () {
-                    this.expectedId = new web3.utils.BN(1);
-                    this.expectedBooker = customer1;
-                    ({ logs: this.logs } = await 
-                        this.kibiwooInstance.book(this.expectedId, {from: this.expectedBooker}));
-                });
-
-                it('Booking a product emits Book event.', async function () {
-                    expectEvent.inLogs(
-                        this.logs, 
-                        'Book', 
-                        {booker: this.expectedBooker, tokenId: this.expectedId}
-                    );
-                });
-
-                it('Reverts if trying to book an already booked product', async function () {
-
-                    await expectRevert(
-                        this.kibiwooInstance.book(this.expectedId, {from: shop1}),
-                        "Cannot Booked an already booked product."
-                    );
-                });
-            });
-        });
-
-        describe('#Test booking mapping variable.', function () {
-
-            it('Reverts if querying a non-existant product.', async function () {
-
-                await expectRevert(
-                    this.kibiwooInstance.isBooked(10), 
-                    "ERC721: isBooked query for nonexistent token"
-                );
-            });
-
-            context('With valid arguments.', function () {
-
-                it('Returns false for already created products but not booked.', async function (){
-
-                    expect(await this.kibiwooInstance.isBooked(0)).to.be.false;
-                });
-
-                it('Returns true for booked products.', async function () {
-                    await this.kibiwooInstance.book(0, {from: customer1});
-                    await this.kibiwooInstance.book(3, {from: customer1});
-                    expect(await this.kibiwooInstance.isBooked(0)).to.be.true;
-                    expect(await this.kibiwooInstance.isBooked(3)).to.be.true;
-                });
-            })       
-        });
-    });
-
     describe('#Test name and symbol variables from ERC721 Metadata extension', function () {
 
         it('Check name and symbol of Metadata Info.', async function () {
@@ -684,6 +609,173 @@ contract("Kibiwoo", function ([kibiwooOwner, shop1, shop2, customer1, customer2,
                 expect(await this.kibiwooInstance.tokenURI(0)).to.equal(expectedURI);
                 expect(await this.kibiwooInstance.tokenURI(4)).to.equal(expectedURI);
             })
+        });
+    });
+
+    describe('#Test getContractBookingAddress function', function() {
+
+        it('Reverts if querying a contract address for a non-existant product.', async function () {
+            let id = 50;
+            await expectRevert(
+                this.kibiwooInstance.getContractBookingAddress(id, {from: shop1}), 
+                'ERC721: contract booking address query for nonexistent token.'
+            );
+        });
+
+        context('With valid arguments', function () {
+
+            beforeEach('Register several products.', async function () {
+                this.expectedId = new web3.utils.BN(0);
+                this.name = 'TablaSurf';
+                this.category = new web3.utils.BN(0);  
+                
+                ({ logs: this.logs } = await 
+                    this.kibiwooInstance.createNewProduct(this.name, this.category, {from: shop1}));
+                this.contractAddress1 = this.logs[1].args["bookingContractAddress"];
+                
+                ({ logs: this.logs } = await 
+                    this.kibiwooInstance.createNewProduct(this.name, 1, {from: shop1}));
+                this.contractAddress2 = this.logs[1].args["bookingContractAddress"];
+                
+            });
+
+            it('Check value of contractAddress to tokenId are correct', async function() {
+                expect(
+                    this.contractAddress1
+                ).to.equal(await this.kibiwooInstance.getContractBookingAddress(0));
+                expect(
+                    this.contractAddress2
+                ).to.equal(await this.kibiwooInstance.getContractBookingAddress(1));
+            })
+        });
+    });
+
+    describe('#Test booking functionality of smart contract.', function () {
+        
+        beforeEach('Register several products.', async function () {
+            // TODO: generalize this function to store logs so that id of products is extracted from there.
+            await this.kibiwooInstance.createNewProduct('Producto1', 0, {from: shop1});
+            await this.kibiwooInstance.createNewProduct('Producto2', 1, {from: shop1});
+            await this.kibiwooInstance.createNewProduct('Producto3', 2, {from: shop1});
+            await this.kibiwooInstance.createNewProduct('Producto4', 0, {from: shop2});
+            await this.kibiwooInstance.createNewProduct('Producto5', 0, {from: shop2});
+
+            this.start1 = 1000+5*24*3600;
+            this.stop1 = 1000+20*24*3600;
+            this.start2 = 1000+30*24*3600;
+            this.stop2 = 1000+35*24*3600;
+        });
+
+        describe('#Test book function.', function () {
+
+            it('Reverts if booking a non-existent product.', async function () {
+
+                await expectRevert(
+                    this.kibiwooInstance.book(10, 1000, 5000, {from: customer1}), 
+                    "ERC721: booking query for nonexistent token."
+                );
+            });
+
+            context('With valid arguments.', function () {
+
+                beforeEach('Book a product and store logs.', async function () {
+                    this.expectedId = new web3.utils.BN(1);
+                    this.expectedBooker = customer1;
+                    ({ logs: this.logs } = await 
+                        this.kibiwooInstance.book(
+                            this.expectedId, 
+                            this.start1, 
+                            this.stop1, 
+                            {from: this.expectedBooker}
+                        )
+                    );
+                });
+
+                it('Reverts if trying to book an already booked product', async function () {
+
+                    await expectRevert(
+                        this.kibiwooInstance.book(
+                            this.expectedId, 
+                            this.start1,
+                            this.stop1,
+                            {from: shop1}
+                        ),
+                        "BookingContract: Time blocks are unavailable."
+                    );
+                });
+
+                it("Allows booking of similar timeslots but different product", async function() {
+                    
+                    let result = await this.kibiwooInstance.book(2, this.start1, this.stop1, {from: shop1});
+                });
+            });
+        });
+    });
+
+    describe('#Test CancellBooking function', function() {
+
+        it("Reverts if trying to cancel from a non-existent product.", async function() {
+            await expectRevert(
+                this.kibiwooInstance.cancel(10, 1000),
+                'ERC721: cancel booking query for nonexistent token.'
+            );
+        });
+
+        context('With correct values', function () {
+
+            beforeEach('Create initial bookings', async function() {
+
+                // TODO: generalize this function to store logs so that id of products is extracted from there.
+                await this.kibiwooInstance.createNewProduct('Producto1', 0, {from: shop1});
+                await this.kibiwooInstance.createNewProduct('Producto2', 1, {from: shop1});
+                await this.kibiwooInstance.createNewProduct('Producto3', 2, {from: shop1});
+                await this.kibiwooInstance.createNewProduct('Producto4', 0, {from: shop2});
+                await this.kibiwooInstance.createNewProduct('Producto5', 0, {from: shop2});
+
+                this.start1 = 1000+5*24*3600;
+                this.stop1 = 1000+20*24*3600;
+                this.start2 = 1000+30*24*3600;
+                this.stop2 = 1000+35*24*3600;
+                ({ logs: this.logs } = await 
+                    this.kibiwooInstance.book(
+                        0, 
+                        this.start1, 
+                        this.stop1, 
+                        {from: customer1}
+                    )
+                );
+                await this.kibiwooInstance.book(1, this.start2, this.stop2, {from: customer2});
+            });
+
+            it("Reverts if trying to cancel when not owning that booking.", async function() {
+                await expectRevert(
+                    this.kibiwooInstance.cancel(0, this.start1, {from: customer2}),
+                    "ERC721: burn of token that is not own"
+                );
+            });
+
+            it("Makes cancelled time period available again. Check events values.", async function () {
+                await expectRevert(
+                    this.kibiwooInstance.book(
+                        0, 
+                        this.start1, 
+                        this.stop1, 
+                        {from: customer2}
+                    ), 
+                    'BookingContract: Time blocks are unavailable.'
+                );
+
+                await this.kibiwooInstance.cancel(0, this.start1, {from: customer1});
+
+                ({ logs: logs } = await 
+                    this.kibiwooInstance.book(
+                        0, 
+                        this.start1, 
+                        this.stop1, 
+                        {from: customer2}
+                    )
+                );
+            });
         });
     });
 });

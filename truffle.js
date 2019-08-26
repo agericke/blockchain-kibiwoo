@@ -6,7 +6,7 @@ module.exports = {
       host: "127.0.0.1",
       port: 8545,
       network_id: "*", // Match any network id
-      gas: 7500000,           // Gas sent with each transaction (default: ~6700000)
+      gas: 9000000,           // Gas sent with each transaction (default: ~6700000)
     }
   },
 

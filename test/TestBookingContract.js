@@ -247,7 +247,7 @@ contract("BookingContract", function ([kibiwooOwner, shop1, shop2, customer1, cu
         });
     });
 
-    describe('#Test Book function', function () {
+    describe('#Test Book function', function() {
         
         it("Reverts if stopTime is less than startTime.", async function() {
             await expectRevert(
@@ -338,47 +338,118 @@ contract("BookingContract", function ([kibiwooOwner, shop1, shop2, customer1, cu
         });
     });
 
-  //     describe("cancellation", () => {
-  //   before(async () => {
-  //     calendar = await Calendar.new();
-  //     await calendar.mint();
-  //     await calendar.mint();
+    describe('#Test CancellBooking function', function() {
 
-  //     await calendar.reserve(0, 1000, 2000, { from: renter1 });
-  //     await calendar.reserve(0, 3000, 3500, { from: renter1 });
-  //     await calendar.reserve(0, 4000, 5000, { from: renter1 });
-  //     await calendar.reserve(0, 2500, 2700, { from: renter2 });
-  //   });
+        it("Reverts if trying to cancel a non-existent booking.", async function() {
+            await expectRevert(
+                this.bookingContractInstance.cancelBooking(customer1, 0), 
+                'BookingContract: Booking does not exist.'
+            );
+        });
 
-  //   it("makes cancelled time period available again", async () => {
-  //     await calendar.cancel(0, 0, { from: renter1 });
+        context('With correct values', function () {
 
-  //     (await calendar.isAvailable(0, 1000, 2000)).should.equal(true);
+            beforeEach('Create initial bookings', async function() {
+                this.start1 = 1000+5*24*3600;
+                this.stop1 = 1000+20*24*3600;
+                this.start2 = 1000+30*24*3600;
+                this.stop2 = 1000+35*24*3600;
+                ({ logs: this.logs } = await 
+                    this.bookingContractInstance.book(
+                        customer1, 
+                        this.start1, 
+                        this.stop1, 
+                        {from: customer2}
+                    )
+                );
+                this.booking2 = await 
+                    this.bookingContractInstance.book(
+                        customer2, 
+                        this.start2, 
+                        this.stop2, 
+                        {from: customer2}
+                    );
+            });
 
-  //     (await calendar.renterOf(0, 1500)).should.equal(nullAddress);
+            it("Reverts if trying to cancel when not owning that booking.", async function() {
+                await expectRevert(
+                    this.bookingContractInstance.cancelBooking(customer2, 0),
+                    "ERC721: burn of token that is not own"
+                );
+            });
 
-  //     // can be reserved again
-  //     await calendar.reserve(0, 1000, 2000, { from: renter1 });
-  //   });
+            it("Makes cancelled time period available again. Check events values.", async function () {
+                await expectRevert(
+                    this.bookingContractInstance.book(
+                        customer2, 
+                        this.start1, 
+                        this.stop1, 
+                        {from: customer2}
+                    ), 
+                    'BookingContract: Time blocks are unavailable.'
+                );
 
-  //   it("reverts if requestor doesn't own the reservation", async () => {
-  //     calendar
-  //       .cancel(0, 1, {
-  //         from: renter2,
-  //       })
-  //       .should.be.rejectedWith(EVMRevert);
-  //   });
+                await this.bookingContractInstance.cancelBooking(customer1, 0);
 
-  //   it("reverts if the calendar id doesn't match", async () => {
-  //     calendar
-  //       .cancel(1, 0, { from: renter1 })
-  //       .should.be.rejectedWith(EVMRevert);
-  //   });
+                ({ logs: logs } = await 
+                    this.bookingContractInstance.book(
+                        customer2, 
+                        this.start1, 
+                        this.stop1, 
+                        {from: customer2}
+                    )
+                );
+                expectEvent.inLogs(
+                    logs, 
+                    'NewBooking', 
+                    {
+                        booker: customer2, 
+                        bookingId: new web3.utils.BN(2), 
+                        startTimeBlock: new web3.utils.toBN(this.start1),
+                        stopTimeBlock: new web3.utils.toBN(this.stop1)
+                    }
+                );
+            });
+        });
+    });
 
-  //   it("reverts if the calendar id doesn't exist", async () => {
-  //     calendar
-  //       .cancel(2, 0, { from: renter1 })
-  //       .should.be.rejectedWith(EVMRevert);
-  //   });
-  // });
+    describe('#Test getReservationIdFromStartTimeBlock function', function() {
+
+        beforeEach('Create initial bookings', async function() {
+            this.start1 = 1000+5*24*3600;
+            this.stop1 = 1000+20*24*3600;
+            this.start2 = 1000+30*24*3600;
+            this.stop2 = 1000+35*24*3600;
+            ({ logs: this.logs } = await this.bookingContractInstance.book(
+                customer1, 
+                this.start1, 
+                this.stop1, 
+                {from: customer2}
+            ));
+            await this.bookingContractInstance.book(
+                customer2, 
+                this.start2, 
+                this.stop2, 
+                {from: customer2}
+            );
+        });
+
+        it("Reverts if querying a non-existent starttimeBlock.", async function() {
+            await expectRevert(
+                this.bookingContractInstance.getReservationIdFromStartTimeBlock(this.start2+24*3600),
+                "BookingContract: No Reservation Id for that startTimeBlock."
+            );
+        });
+
+        it("Returns correct reservationId value.", async function () {
+
+            let reservationId1 = await 
+                this.bookingContractInstance.getReservationIdFromStartTimeBlock(this.start1);
+            expect(web3.utils.toBN(reservationId1)).to.be.bignumber.equal(web3.utils.toBN(0));
+
+            let reservationId2 = await 
+                this.bookingContractInstance.getReservationIdFromStartTimeBlock(this.start2);
+            expect(web3.utils.toBN(reservationId2)).to.be.bignumber.equal(web3.utils.toBN(1));
+        });
+    })
 });
