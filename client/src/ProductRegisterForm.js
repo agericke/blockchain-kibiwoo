@@ -5,19 +5,27 @@ class ProductRegisterForm extends React.Component {
     state = {stackId: null};
 
     handleKeyDown = e => {
+        console.log(e);
 
         if (e.keyCode === 13) {
             this.setValue(e.targetValue);
         }
     };
 
+
     setValue = value => {
         const {drizzle, drizzleState} = this.props;
         const contract = drizzle.contracts.Kibiwoo;
 
-        const stackId = contract.methods["createNewProduct"].cacheSend(value, {
-            from: drizzleState.accounts[0]
-        });
+        console.log(value);
+        console.log(typeof(value));
+        console.log(typeof(1));
+
+        const stackId = contract.methods["createNewProduct"].cacheSend(
+            value,
+            1,
+            {from: drizzleState.accounts[0]}
+        );
 
         this.setState({ stackId });
     };
