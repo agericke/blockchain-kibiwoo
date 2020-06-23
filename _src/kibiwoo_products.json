@@ -2,7 +2,7 @@
   {
     "id": 0,
     "name": "Tabla de Surf",
-    "picture": "images/scottish-terrier.jpeg",
+    "picture": "images/surf1.jpeg",
     "category": "Surf",
     "sku": "1000890890",
     "location": "Lisco, Alabama"
@@ -10,7 +10,7 @@
   {
     "id": 1,
     "name": "Esquís Freestyle",
-    "picture": "images/scottish-terrier.jpeg",
+    "picture": "images/skis1.jpeg",
     "category": "Ski",
     "sku": "1000890891",
     "location": "Tooleville, West Virginia"
@@ -18,7 +18,7 @@
   {
     "id": 2,
     "name": "Esquí Fuera Pista",
-    "picture": "images/french-bulldog.jpeg",
+    "picture": "images/skis2.jpeg",
     "category": "Ski",
     "sku": "1000890892",
     "location": "Freeburn, Idaho"
@@ -26,7 +26,7 @@
   {
     "id": 3,
     "name": "Tablón Rusty",
-    "picture": "images/boxer.jpeg",
+    "picture": "images/surf2.jpeg",
     "category": "Surf",
     "sku": "1000890893",
     "location": "Camas, Pennsylvania"
@@ -34,7 +34,7 @@
   {
     "id": 4,
     "name": "Bicicleta Montaña",
-    "picture": "images/french-bulldog.jpeg",
+    "picture": "images/bicycle1.jpeg",
     "category": "Cycling",
     "sku": "1000890894",
     "location": "Gerber, South Dakota"
@@ -42,7 +42,7 @@
   {
     "id": 5,
     "name": "Bici Carretera",
-    "picture": "images/french-bulldog.jpeg",
+    "picture": "images/bicycle2.jpeg",
     "category": "Cycling",
     "sku": "1000890895",
     "location": "Innsbrook, Illinois"
@@ -50,7 +50,7 @@
   {
     "id": 6,
     "name": "Tablón Iniciación",
-    "picture": "images/golden-retriever.jpeg",
+    "picture": "images/surf3.jpeg",
     "category": "Surf",
     "sku": "1000890896",
     "location": "Soudan, Louisiana"
@@ -58,7 +58,7 @@
   {
     "id": 7,
     "name": "Esquí de Fondo",
-    "picture": "images/golden-retriever.jpeg",
+    "picture": "images/skis2.jpeg",
     "category": "Ski",
     "sku": "1000890897",
     "location": "Jacksonwald, Palau"
@@ -66,7 +66,7 @@
   {
     "id": 8,
     "name": "Tabla Pukas",
-    "picture": "images/french-bulldog.jpeg",
+    "picture": "images/surfboard2.jpeg",
     "category": "Surf",
     "sku": "1000890898",
     "location": "Honolulu, Hawaii"
@@ -74,7 +74,7 @@
   {
     "id": 9,
     "name": "Shortboard",
-    "picture": "images/boxer.jpeg",
+    "picture": "images/surfboard1.jpeg",
     "category": "Surf",
     "sku": "1000890899",
     "location": "Matheny, Utah"
@@ -82,7 +82,7 @@
   {
     "id": 10,
     "name": "Tabla Snow",
-    "picture": "images/boxer.jpeg",
+    "picture": "images/skis1.jpeg",
     "category": "Ski",
     "sku": "1000890810",
     "location": "Tyhee, Indiana"
@@ -90,7 +90,7 @@
   {
     "id": 11,
     "name": "Tabla Snow Freestyle",
-    "picture": "images/scottish-terrier.jpeg",
+    "picture": "images/skis2.jpeg",
     "category": "Surf",
     "sku": "1000890811",
     "location": "Windsor, Montana"
@@ -98,7 +98,7 @@
   {
     "id": 12,
     "name": "Snowboard Ancho",
-    "picture": "images/french-bulldog.jpeg",
+    "picture": "images/skis1.jpeg",
     "category": "Ski",
     "sku": "1000890812",
     "location": "Kingstowne, Nevada"
@@ -106,7 +106,7 @@
   {
     "id": 13,
     "name": "Tándem",
-    "picture": "images/golden-retriever.jpeg",
+    "picture": "images/bicycle1.jpeg",
     "category": "Cycling",
     "sku": "1000890813",
     "location": "Sultana, Massachusetts"
@@ -114,7 +114,7 @@
   {
     "id": 14,
     "name": "BMX",
-    "picture": "images/golden-retriever.jpeg",
+    "picture": "images/bicycle2.jpeg",
     "category": "Cycling",
     "sku": "1000890814",
     "location": "Broadlands, Oregon"
@@ -122,7 +122,7 @@
   {
     "id": 15,
     "name": "Esquís Cortos",
-    "picture": "images/golden-retriever.jpeg",
+    "picture": "images/skis2.jpeg",
     "category": "Ski",
     "sku": "1000890815",
     "location": "Dawn, Wisconsin"
