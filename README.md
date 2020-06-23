@@ -1,6 +1,6 @@
 # BLOCKCHAIN KIBIWOO
 
-- This Project aims to develop and deploy a series of smart contracts that allow to migrate a booking system logic to a decentralized environment based in Blockchain technology. 
+- This Project aims to develop and deploy a series of smart contracts that allow to migrate a booking system logic to a decentralized environment based in Blockchain technology.
 - It also develops a decentralized application that acts as a proof of concept of the solution.
 - For testing the smart contracts a TDD/BDD coding style has been implemented using Mocha and Chai JS libraries.
 
